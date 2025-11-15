@@ -2,14 +2,47 @@
 // KONFIGURASI: Ganti dengan ID Formulir Google Anda yang sebenarnya
 // =======================================================================
 // Pastikan ID ini benar dan akun Anda memiliki izin akses ke Formulir tersebut
-const FORM_ID = 'ID_GOOGLE_FORMULIR'; 
+const FORM_ID = 'COPY_ID_GOOGLE_FORMULIR_DI_SINI'; 
+
+/**
+ * Fungsi ini berjalan secara otomatis saat spreadsheet dibuka.
+ * Tugasnya adalah membuat menu kustom interaktif.
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+      .createMenu('⚙️ Form Generator') // Nama menu utama
+      .addItem('⚠️ Update Formulir (Konfirmasi)', 'showConfirmationDialog') // Memanggil dialog konfirmasi
+      .addToUi();
+}
+
+/**
+ * Menampilkan dialog konfirmasi sebelum menjalankan skrip utama.
+ */
+function showConfirmationDialog() {
+  var ui = SpreadsheetApp.getUi();
+  var result = ui.alert(
+     'Konfirmasi Update Formulir',
+     'Apakah Anda yakin ingin MENGHAPUS SEMUA pertanyaan di Formulir Google (' + FORM_ID + ') dan membuatnya ulang dari Sheet1?',
+     ui.ButtonSet.YES_NO
+  );
+  
+  // Periksa respon pengguna
+  if (result == ui.Button.YES) {
+    // Jika user menekan 'Ya', jalankan fungsi utama
+    updateFormWithMixedTypes();
+    ui.alert('Update Formulir Selesai!', 'Formulir telah berhasil diperbarui.', ui.ButtonSet.OK);
+  } else {
+    // Jika user menekan 'Tidak'
+    Logger.log('Update dibatalkan oleh pengguna.');
+  }
+}
+
 
 /**
  * Fungsi utama untuk membaca data dari Google Sheet (Sheet1), 
  * mengacak pilihan, dan MENGUPDATE Form Google yang sudah ada.
- * Setiap pertanyaan dibuat di Section terpisah.
- * Kolom H = Poin Pertanyaan.
- * Kolom I = Judul Section Berikutnya.
+ * Kolom H = Poin Pertanyaan (Indeks 7).
+ * Kolom I = Judul Section Berikutnya (Indeks 8).
  */
 function updateFormWithMixedTypes() { 
   Logger.log("--- Mulai Update Form dengan Poin dan Section Dinamis ---");
@@ -106,7 +139,7 @@ function updateFormWithMixedTypes() { 
   }
   
   Logger.log("--- Update Formulir Selesai ---");
-  Logger.log("Formulir dengan ID: " + FORM_ID + " telah berhasil diperbarui!");
+  // CATATAN: Pesan sukses sekarang ditampilkan oleh showConfirmationDialog()
 }
 
 
@@ -182,7 +215,7 @@ function addShortAnswerItem(form, row) {
  */
 function addParagraphItem(form, row) {
   var questionTitle = row[1]; 
-  // Tidak menetapkan poin, sehingga defaultnya adalah 0.
+  // Item esai tidak secara otomatis diberi poin di sini (Poin default 0)
   var addItem = form.addParagraphTextItem();
   addItem.setTitle(questionTitle);
 }
