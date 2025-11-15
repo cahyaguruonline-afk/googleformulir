@@ -2,7 +2,7 @@
 // KONFIGURASI: Ganti dengan ID Formulir Google Anda yang sebenarnya
 // =======================================================================
 // Pastikan ID ini benar dan akun Anda memiliki izin akses ke Formulir tersebut
-const FORM_ID = '1nTQaWc_V9oQKUNhqauDMJNCYg6w8cQlscZ0G2jqoN0I'; 
+const FORM_ID = 'COPY_ID_FORM_DISINI'; 
 
 
 
