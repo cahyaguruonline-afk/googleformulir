@@ -1,14 +1,18 @@
 // =======================================================================
 // KONFIGURASI: Ganti dengan ID Formulir Google Anda yang sebenarnya
 // =======================================================================
-const FORM_ID = '1HRQwhLPbuIY3QxRqLgbV1nCOPIcCp6Ye9tSmxyEwjjU'; 
+// Pastikan ID ini benar dan akun Anda memiliki izin akses ke Formulir tersebut
+const FORM_ID = 'ID_GOOGLE_FORMULIR'; 
 
 /**
  * Fungsi utama untuk membaca data dari Google Sheet (Sheet1), 
  * mengacak pilihan, dan MENGUPDATE Form Google yang sudah ada.
+ * Setiap pertanyaan dibuat di Section terpisah.
+ * Kolom H = Poin Pertanyaan.
+ * Kolom I = Judul Section Berikutnya.
  */
 function updateFormWithMixedTypes() { 
-  Logger.log("--- Mulai Update Form dengan Jenis Campuran ---");
+  Logger.log("--- Mulai Update Form dengan Poin dan Section Dinamis ---");
   
   // --- 1. MENGAMBIL DATA DARI SHEET ---
   var ss = SpreadsheetApp.getActive();
@@ -25,15 +29,15 @@ function updateFormWithMixedTypes() { 
     return;
   }
 
-  // Mengambil 7 Kolom (Kolom A-G)
-  var allData = sheet.getRange(1, 1, numberRows, 7).getValues(); 
+  // Mengambil 9 Kolom (Kolom A-I)
+  var allData = sheet.getRange(1, 1, numberRows, 9).getValues();  
   var totalRows = allData.length;
 
   // --- 2. MEMBUKA DAN MEMBERSIHKAN FORMULIR ---
   try {
     var form = FormApp.openById(FORM_ID);
     
-    // Metode Penghapusan Item Manual yang andal
+    // Menghapus semua item/pertanyaan yang sudah ada
     var items = form.getItems();
     for (var i = items.length - 1; i >= 0; i--) { 
       form.deleteItem(items[i]);
@@ -51,20 +55,19 @@ function updateFormWithMixedTypes() { 
   // --- 3. ITERASI DAN MENAMBAHKAN ITEM BARU DENGAN SECTION ---
   for (var i = 0; i < totalRows; i++) {
     var row = allData[i];
-    var questionType = row[0].toString().toUpperCase().trim(); // Kolom A
-
-    // Bersihkan dan validasi Judul
-    var cleanTitle = row[1] ? row[1].toString().trim() : "";  // Kolom B
+    var questionType = row[0].toString().toUpperCase().trim(); // Kolom A: Jenis Soal
+    
+    // Bersihkan dan validasi Judul Pertanyaan
+    var cleanTitle = row[1] ? row[1].toString().trim() : "";  // Kolom B: Judul Pertanyaan
 
     if (cleanTitle === "") {
         Logger.log("Baris " + (i + 1) + " dilewati karena judul pertanyaan kosong.");
         continue; 
     }
     
-    // Ganti nilai di row[1] dengan versi yang sudah bersih (cleanTitle)
     row[1] = cleanTitle; 
 
-    // Panggil fungsi pembantu untuk menambahkan pertanyaan
+    // Panggil fungsi pembantu untuk menambahkan pertanyaan berdasarkan jenis
     switch (questionType) {
       case 'PG':
         addMultipleChoiceItem(form, row);
@@ -87,10 +90,18 @@ function updateFormWithMixedTypes() { 
     
     // =======================================================
     // LOGIKA TAMBAHAN: Tambahkan Page Break (Section Baru)
+    // Judul Section diambil dari Kolom I (Indeks 8) dari baris berikutnya
     // =======================================================
-    if (i < totalRows - 1) { // Hanya tambahkan jika BUKAN pertanyaan terakhir
+    if (i < totalRows - 1) { 
+      var nextSectionTitle = allData[i+1][8].toString().trim(); // Kolom I (Indeks 8)
+      
+      // Fallback jika kolom Judul Section kosong
+      if (nextSectionTitle === "") {
+        nextSectionTitle = "Lanjut ke Pertanyaan " + (i + 2);
+      }
+      
       form.addPageBreakItem()
-        .setTitle("Lanjut ke Pertanyaan " + (i + 2)); 
+        .setTitle(nextSectionTitle); 
     }
   }
   
@@ -101,7 +112,7 @@ function updateFormWithMixedTypes() { 
 
 // =======================================================================
 // FUNGSI PEMBANTU (HELPER FUNCTIONS)
-// (Bagian ini tidak diubah)
+// Poin Pertanyaan diambil dari Kolom H (Indeks 7)
 // =======================================================================
 
 /**
@@ -110,7 +121,8 @@ function updateFormWithMixedTypes() { 
 function addMultipleChoiceItem(form, row) {
   var questionTitle = row[1]; 
   var myAnswers = row[2]; 
-  var myGuesses = row.slice(2, 7); 
+  var myGuesses = row.slice(2, 7);
+  var questionPoint = parseInt(row[7], 10) || 1; // Kolom H (Indeks 7)
 
   var shuffledOptions = shuffleArray(myGuesses);
   
@@ -118,7 +130,7 @@ function addMultipleChoiceItem(form, row) {
   var choices = createChoices(addItem, shuffledOptions, myAnswers);
   
   addItem.setTitle(questionTitle)
-         .setPoints(1)
+         .setPoints(questionPoint)
          .setChoices(choices);
 }
 
@@ -128,7 +140,8 @@ function addMultipleChoiceItem(form, row) {
 function addDropdownItem(form, row) {
   var questionTitle = row[1]; 
   var myAnswers = row[2]; 
-  var myGuesses = row.slice(2, 7); 
+  var myGuesses = row.slice(2, 7);
+  var questionPoint = parseInt(row[7], 10) || 1; // Kolom H (Indeks 7)
 
   var shuffledOptions = shuffleArray(myGuesses);
   
@@ -136,7 +149,7 @@ function addDropdownItem(form, row) {
   var choices = createChoices(addItem, shuffledOptions, myAnswers);
 
   addItem.setTitle(questionTitle)
-         .setPoints(1)
+         .setPoints(questionPoint)
          .setChoices(choices);
 }
 
@@ -146,10 +159,11 @@ function addDropdownItem(form, row) {
 function addShortAnswerItem(form, row) {
   var questionTitle = row[1]; 
   var correctAnswer = row[2].toString().trim();
+  var questionPoint = parseInt(row[7], 10) || 1; // Kolom H (Indeks 7)
 
   var addItem = form.addTextItem();
   addItem.setTitle(questionTitle)
-         .setPoints(1); 
+         .setPoints(questionPoint); 
          
   if (correctAnswer !== "") {
     addItem.setValidation(
@@ -168,7 +182,7 @@ function addShortAnswerItem(form, row) {
  */
 function addParagraphItem(form, row) {
   var questionTitle = row[1]; 
-  
+  // Tidak menetapkan poin, sehingga defaultnya adalah 0.
   var addItem = form.addParagraphTextItem();
   addItem.setTitle(questionTitle);
 }
