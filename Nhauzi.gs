@@ -12,7 +12,7 @@ const FORM_ID = 'COPY_ID_FORM_DISINI'; 
  */
 function onOpenX() {
   SpreadsheetApp.getUi()
-      .createMenu('Form') // Nama menu utama
+      .createMenu('Buka Form') // Nama menu utama
       .addItem('Buka Tautan Google', 'openGoogleFormLink') // Item menu dan fungsi yang dipanggil
       .addToUi();
 }
@@ -34,7 +34,7 @@ function openGoogleFormLink() {
  */
 function onOpen() {
   SpreadsheetApp.getUi()
-      .createMenu('Generate') // Nama menu utama
+      .createMenu('Generate Soal') // Nama menu utama
       .addItem('⚠️ Update Formulir (Konfirmasi)', 'showConfirmationDialog') // Memanggil dialog konfirmasi
       .addToUi();
 }
