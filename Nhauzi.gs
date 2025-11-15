@@ -2,7 +2,31 @@
 // KONFIGURASI: Ganti dengan ID Formulir Google Anda yang sebenarnya
 // =======================================================================
 // Pastikan ID ini benar dan akun Anda memiliki izin akses ke Formulir tersebut
-const FORM_ID = 'ID_COPY_DI_SINI'; 
+const FORM_ID = '1nTQaWc_V9oQKUNhqauDMJNCYg6w8cQlscZ0G2jqoN0I'; 
+
+
+
+/**
+ * Fungsi ini dipicu saat spreadsheet dibuka.
+ * Ini membuat menu kustom di bilah menu Google Sheets.
+ */
+function onOpenX() {
+  SpreadsheetApp.getUi()
+      .createMenu('Form') // Nama menu utama
+      .addItem('Buka Tautan Google', 'openGoogleFormLink') // Item menu dan fungsi yang dipanggil
+      .addToUi();
+}
+
+/**
+ * Fungsi ini membuka tautan (URL) di tab atau jendela baru browser pengguna.
+ */
+function openGoogleFormLink() {
+  var html = HtmlService.createHtmlOutput('<script>window.open("https://docs.google.com/forms/d/1nTQaWc_V9oQKUNhqauDMJNCYg6w8cQlscZ0G2jqoN0I/edit", "_blank");</script>')
+      .setWidth(100)
+      .setHeight(1);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Membuka Tautan...');
+}
+
 
 /**
  * Fungsi ini berjalan secara otomatis saat spreadsheet dibuka.
@@ -10,7 +34,7 @@ const FORM_ID = 'ID_COPY_DI_SINI'; 
  */
 function onOpen() {
   SpreadsheetApp.getUi()
-      .createMenu('⚙️ Form Generator') // Nama menu utama
+      .createMenu('Generate') // Nama menu utama
       .addItem('⚠️ Update Formulir (Konfirmasi)', 'showConfirmationDialog') // Memanggil dialog konfirmasi
       .addToUi();
 }
