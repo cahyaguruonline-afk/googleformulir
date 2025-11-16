@@ -2,7 +2,55 @@
 // KONFIGURASI: Ganti dengan ID Formulir Google Anda yang sebenarnya
 // =======================================================================
 // Pastikan ID ini benar dan akun Anda memiliki izin akses ke Formulir tersebut
-const FORM_ID = '1Ks1CoCu9USj1siYAfiRj-YYR0RWuN8C5yM2X38xKRj0'; 
+const FORM_ID = 'Copy_ID_Form_di_SINI'; 
+
+/**
+ * Membatalkan tautan (unlink) dan menautkan kembali (re-link) formulir yang terhubung
+ * ke Google Sheet saat ini.
+ */
+function unlinkAndRelinkForm() {
+  // 1. Dapatkan Spreadsheet aktif
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // 2. Dapatkan objek Form yang terhubung
+  // Ini mengasumsikan hanya ada satu formulir yang terhubung ke Sheet ini.
+  const form = ss.getFormUrl() ? FormApp.openByUrl(ss.getFormUrl()) : null;
+
+  if (form) {
+    try {
+      // --- Langkah 1: Batalkan Tautan (Unlink) ---
+      
+      // Ambil ID dari Spreadsheet saat ini sebelum membatalkan tautan
+      const spreadsheetId = ss.getId(); 
+      Logger.log(`Membatalkan tautan formulir '${form.getTitle()}' (ID: ${form.getId()}) dari Spreadsheet (ID: ${spreadsheetId})...`);
+
+      // Memanggil metode untuk membatalkan tautan Sheet saat ini.
+      form.removeDestination(); 
+      
+      SpreadsheetApp.getUi().alert('Status', 'Formulir berhasil dibatalkan tautannya (Unlinked).', SpreadsheetApp.getUi().ButtonSet.OK);
+      Logger.log('Pembatalan tautan berhasil.');
+
+      // --- Langkah 2: Tautkan Kembali (Relink) ---
+      
+      Logger.log(`Menautkan kembali formulir ke Spreadsheet (ID: ${spreadsheetId})...`);
+      
+      // Menautkan kembali formulir ke Spreadsheet saat ini sebagai tujuan baru.
+      // Data respons formulir akan masuk ke Sheet baru yang dibuat di Spreadsheet ini
+      // (biasanya bernama "Form Responses 1").
+      form.setDestination(FormApp.DestinationType.SPREADSHEET, spreadsheetId);
+
+      SpreadsheetApp.getUi().alert('Selesai', 'Formulir berhasil ditautkan kembali (Relinked) ke Spreadsheet ini.', SpreadsheetApp.getUi().ButtonSet.OK);
+      Logger.log('Penautan kembali berhasil.');
+
+    } catch (e) {
+      Logger.log(`Terjadi kesalahan: ${e.toString()}`);
+      SpreadsheetApp.getUi().alert('Kesalahan', `Tidak dapat menyelesaikan operasi: ${e.toString()}`, SpreadsheetApp.getUi().ButtonSet.OK);
+    }
+  } else {
+    SpreadsheetApp.getUi().alert('Peringatan', 'Tidak ada formulir yang terhubung yang ditemukan pada Spreadsheet ini.', SpreadsheetApp.getUi().ButtonSet.OK);
+    Logger.log('Tidak ada formulir yang terhubung.');
+  }
+}
 
 
 /**
@@ -103,7 +151,7 @@ function onOpen() {
       .addItem('Update Formulir (Konfirmasi)', 'showConfirmationDialog') // Memanggil dialog konfirmasi
       .addItem('Buka Formulir (Konfirmasi)', 'openGoogleFormLink') // Memanggil dialog konfirmasi
       .addItem('Hapus Respon GForm (Konfirmasi)', 'hapusSemuaRespons') // Memanggil dialog konfirmasi
-      .addItem('Hapus Respon Sheet (Konfirmasi)', 'hapusDataSheetRespon') // Memanggil dialog konfirmasi
+      .addItem('Hapus Respon Sheet (Konfirmasi)', 'unlinkAndRelinkForm') // Memanggil dialog konfirmasi
       .addToUi();
 }
 
